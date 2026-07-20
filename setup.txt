@@ -1,0 +1,11 @@
+1. Connect Laptop <-> Mobile via USB cable  (Mobile: Dev Opts -> Turn ON USB debug, Install via USB, USB debug security)
+2. npx expo run:android --device
+3. Run `adb reverse tcp:8081 tcp:8081` in Laptop
+4. Open App in Mobile
+5. Unplug cable & Turn OFF  `Mobile`: USB debug, Install via USB, USB debug security & Dev Opts
+
+##==>> For final Release :
+        1. cd android
+        2. ./gradlew clean
+        3. ./gradlew assembleRelease
+        4. Use app-release.apk @./android/app/build/outputs/apk/release
