@@ -1,11 +1,27 @@
-1. Connect Laptop <-> Mobile via USB cable  (Mobile: Dev Opts -> Turn ON USB debug, Install via USB, USB debug security)
-2. npx expo run:android --device
-3. Run `adb reverse tcp:8081 tcp:8081` in Laptop
-4. Open App in Mobile
-5. Unplug cable & Turn OFF  `Mobile`: USB debug, Install via USB, USB debug security & Dev Opts
+##==>> For Testing :
+        1. Connect Laptop <-> Mobile via USB cable  (Mobile: Dev Opts -> Turn ON USB debug, Install via USB, USB debug security)
+        2. npx expo run:android --device
+        3. Run `adb reverse tcp:8081 tcp:8081` in Laptop
+        4. Open App in Mobile
+        5. Unplug cable & Turn OFF  `Mobile`: USB debug, Install via USB, USB debug security & Dev Opts
 
 ##==>> For final Release :
-        1. cd android
-        2. ./gradlew clean
-        3. ./gradlew assembleRelease
-        4. Use app-release.apk @./android/app/build/outputs/apk/release
+        1. Increase app version
+            - app.json  -> version
+            - android/app/build.gradle -> versionCode & versionName
+        2. cd android
+        3. ./gradlew clean ( Only if you encounter any issues with step-4., You can directly skip to next step-4. )
+        4. ./gradlew assembleRelease
+        5. Use app-release.apk @./android/app/build/outputs/apk/release
+        6. Create a new GitHub Release
+
+
+##==>> Keystore Details (Highly Secret) :
+        - keystore: "./medmemory-release.keystore"
+        - alias: "medmemory"
+        - Password: "MedMemory2026"
+        - Name: "Srinivas B"
+        - Organizational Unit: "MedMemory-AI"
+        - Organization: "MedMemory"
+        - Locality: "Indian (in)"
+        - State: "Telangana"
