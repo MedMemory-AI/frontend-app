@@ -40,6 +40,7 @@ export function RegisterScreen() {
         email: values.email.trim(),
         password: values.password,
       });
+      navigation.reset({ index: 0, routes: [{ name: 'VerifyOtp' }] });
     } catch {
       // Error state is handled in the auth store.
     }

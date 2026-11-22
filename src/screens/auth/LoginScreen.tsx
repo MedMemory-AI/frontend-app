@@ -33,6 +33,7 @@ export function LoginScreen() {
 
     try {
       await login(values.email.trim(), values.password);
+      navigation.reset({ index: 0, routes: [{ name: 'VerifyOtp' }] });
     } catch {
       // Error state is handled in the auth store.
     }

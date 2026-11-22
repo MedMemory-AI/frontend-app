@@ -56,28 +56,51 @@ export type UploadFile = {
   type: string;
 };
 
-export type MultipartFieldValue = string | UploadFile;
+export type MultipartFieldValue = string | UploadFile | File | Blob;
 
-export function buildFormData(
-  fields: Record<string, any | any[]>,
-): FormData {
+function isUploadFile(entry: unknown): entry is UploadFile {
+  return (
+    typeof entry === 'object' &&
+    entry !== null &&
+    'uri' in entry &&
+    typeof (entry as UploadFile).uri === 'string'
+  );
+}
+
+export async function buildFormData(
+  fields: Record<string, MultipartFieldValue | MultipartFieldValue[]>,
+): Promise<FormData> {
   const formData = new FormData();
+  const isWeb = typeof window !== 'undefined';
 
   for (const [key, value] of Object.entries(fields)) {
     const values = Array.isArray(value) ? value : [value];
 
     for (const entry of values) {
       if (!entry) continue;
-      
-      // If running on web and it's already a File or Blob
-      if (typeof window !== 'undefined' && (entry instanceof File || entry instanceof Blob)) {
+
+      if (typeof entry === 'string') {
         formData.append(key, entry);
-      } 
-      else if (typeof entry === 'string') {
+        continue;
+      }
+
+      if (isWeb && (entry instanceof File || entry instanceof Blob)) {
         formData.append(key, entry);
-      } 
-      else {
-        // React Native mobile format
+        continue;
+      }
+
+      if (isWeb && isUploadFile(entry)) {
+        const blob = await fetch(entry.uri).then((response) => response.blob());
+        formData.append(
+          key,
+          new File([blob], entry.name || 'upload.pdf', {
+            type: entry.type || blob.type || 'application/pdf',
+          }),
+        );
+        continue;
+      }
+
+      if (isUploadFile(entry)) {
         formData.append(key, {
           uri: entry.uri,
           name: entry.name || 'upload.pdf',
@@ -108,5 +131,5 @@ export async function uploadFiles<T>(
   fields: Record<string, MultipartFieldValue | MultipartFieldValue[]>,
   config?: ApiRequestConfig,
 ): Promise<T> {
-  return upload<T>(url, buildFormData(fields), config);
+  return upload<T>(url, await buildFormData(fields), config);
 }

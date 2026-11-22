@@ -4,7 +4,7 @@
                        ---- OR ----
         1. Connect Laptop <-> Mobile via USB cable  (Mobile: Dev Opts -> Turn ON USB debug, Install via USB, USB debug security)
         2. npx expo run:android --device
-        3. Run `adb reverse tcp:8081 tcp:8081` in Laptop
+        3. Run `adb reverse tcp:8081 tcp:8081` in Laptop Shell
         4. Open App in Mobile
         5. Unplug cable & Turn OFF  `Mobile`: USB debug, Install via USB, USB debug security & Dev Opts
 

@@ -1,5 +1,14 @@
 export { apiClient, type ApiClient } from './client';
-export { loginRequest, registerRequest, type AuthData, type LoginRequest, type RegisterRequest } from './auth';
+export {
+  loginRequest,
+  registerRequest,
+  verifyOtpRequest,
+  type AuthData,
+  type LoginRequest,
+  type MeProfileData,
+  type RegisterRequest,
+  type VerifyOtpRequest,
+} from './auth';
 export { ApiError, isApiError, parseApiError, type ApiErrorDetail, type ApiRequestConfig } from './errors';
 export {
   api,

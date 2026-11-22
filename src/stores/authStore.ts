@@ -1,6 +1,13 @@
 import { create } from 'zustand';
 
-import { loginRequest, registerRequest, type AuthData, type RegisterRequest } from '../api/auth';
+import {
+  loginRequest,
+  registerRequest,
+  verifyOtpRequest,
+  type AuthData,
+  type MeProfileData,
+  type RegisterRequest,
+} from '../api/auth';
 import { isApiError } from '../api/errors';
 import { clearTokens, getAccessToken, getStoredUser, setAccessToken, setStoredUser } from '../api/tokenStorage';
 import type { User } from '../types';
@@ -8,6 +15,7 @@ import type { User } from '../types';
 type AuthState = {
   user: User | null;
   isAuthenticated: boolean;
+  isAwaitingOtp: boolean;
   isHydrated: boolean;
   isLoading: boolean;
   error: string | null;
@@ -17,6 +25,7 @@ type AuthState = {
 type AuthActions = {
   login: (email: string, password: string) => Promise<void>;
   register: (payload: RegisterRequest) => Promise<void>;
+  verifyOtp: (otp: string) => Promise<void>;
   logout: () => Promise<void>;
   initialize: () => Promise<void>;
   clearError: () => void;
@@ -29,22 +38,24 @@ export type AuthStore = AuthState & AuthActions;
 const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
+  isAwaitingOtp: false,
   isHydrated: false,
   isLoading: false,
   error: null,
   isGuest: false,
 };
 
-function mapAuthDataToUser(data: AuthData): User {
+function mapAuthDataToUser(data: AuthData | MeProfileData): User {
   return {
     id: data.id,
     email: data.email,
     fullName: data.fullName,
+    isVerified: data.isVerified,
   };
 }
 
 async function persistSession(data: AuthData): Promise<User> {
-  const user = mapAuthDataToUser(data);
+  const user = mapAuthDataToUser({ ...data, isVerified: false });
   await setAccessToken(data.accessToken);
   await setStoredUser(user);
   return user;
@@ -74,7 +85,8 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
       set({
         user,
-        isAuthenticated: true,
+        isAuthenticated: false,
+        isAwaitingOtp: true,
         isGuest: false,
         isLoading: false,
         error: null,
@@ -97,7 +109,33 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
       set({
         user,
+        isAuthenticated: false,
+        isAwaitingOtp: true,
+        isGuest: false,
+        isLoading: false,
+        error: null,
+      });
+    } catch (error) {
+      set({
+        isLoading: false,
+        error: getErrorMessage(error),
+      });
+      throw error;
+    }
+  },
+
+  verifyOtp: async (otp) => {
+    set({ isLoading: true, error: null });
+
+    try {
+      const data = await verifyOtpRequest({ otp });
+      const user = mapAuthDataToUser({ ...data, isVerified: true });
+      await setStoredUser(user);
+
+      set({
+        user,
         isAuthenticated: true,
+        isAwaitingOtp: false,
         isGuest: false,
         isLoading: false,
         error: null,
@@ -125,9 +163,12 @@ export const useAuthStore = create<AuthStore>((set) => ({
       const [token, user] = await Promise.all([getAccessToken(), getStoredUser()]);
 
       if (token && user) {
+        const isVerified = user.isVerified !== false;
+
         set({
           user,
-          isAuthenticated: true,
+          isAuthenticated: isVerified,
+          isAwaitingOtp: !isVerified,
           isHydrated: true,
           isLoading: false,
           error: null,

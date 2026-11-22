@@ -21,6 +21,7 @@ type SelectedFile = {
   type: string;
   size?: number;
   previewType: 'image' | 'pdf' | 'doc';
+  webFile?: File;
 };
 
 export function UploadScreen() {
@@ -68,12 +69,14 @@ export function UploadScreen() {
         previewType = 'pdf';
       }
 
+      const webFile = (asset as { file?: File }).file;
       setSelectedFile({
         uri: asset.uri,
         name: asset.name ?? 'document',
         type: mime,
         size: asset.size,
         previewType,
+        webFile,
       });
       setStatus({ type: 'idle', message: 'Document ready to upload.' });
     } catch (error) {
@@ -111,7 +114,7 @@ export function UploadScreen() {
       const response = await uploadFiles<UploadResponseData>(
         "/ingestion/upload",
         {
-          file: {
+          file: selectedFile.webFile ?? {
             uri: selectedFile.uri,
             name: selectedFile.name,
             type: selectedFile.type,
