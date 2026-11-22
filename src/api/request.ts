@@ -59,7 +59,7 @@ export type UploadFile = {
 export type MultipartFieldValue = string | UploadFile;
 
 export function buildFormData(
-  fields: Record<string, MultipartFieldValue | MultipartFieldValue[]>,
+  fields: Record<string, any | any[]>,
 ): FormData {
   const formData = new FormData();
 
@@ -67,16 +67,23 @@ export function buildFormData(
     const values = Array.isArray(value) ? value : [value];
 
     for (const entry of values) {
-      if (typeof entry === 'string') {
+      if (!entry) continue;
+      
+      // If running on web and it's already a File or Blob
+      if (typeof window !== 'undefined' && (entry instanceof File || entry instanceof Blob)) {
         formData.append(key, entry);
-        continue;
+      } 
+      else if (typeof entry === 'string') {
+        formData.append(key, entry);
+      } 
+      else {
+        // React Native mobile format
+        formData.append(key, {
+          uri: entry.uri,
+          name: entry.name || 'upload.pdf',
+          type: entry.type || 'application/pdf',
+        } as any);
       }
-
-      formData.append(key, {
-        uri: entry.uri,
-        name: entry.name,
-        type: entry.type,
-      } as any);
     }
   }
 
